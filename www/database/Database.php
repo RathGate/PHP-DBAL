@@ -4,6 +4,7 @@ namespace database;
 require_once __DIR__."/../autoload.php";
 
 use Exception;
+use PDO;
 use security\Credentials;
 use libs\FormatLib;
 use Throwable;
@@ -12,9 +13,10 @@ use Vtiful\Kernel\Format;
 class Database
 {
     private $connection;
-    public static $valid_operators = [
+    public static $comparison_op = [
         "=", "<>", "!=", "<", ">", "<=", ">=", "LIKE", "IN", "BETWEEN", "IS NULL", "IS NOT NULL",
     ];
+    public static $aggregation_op = ["AND", "OR"];
 
     function __construct(Credentials $credentials = NULL)
     {
@@ -31,8 +33,8 @@ class Database
             WHERE TABLE_SCHEMA = :dbname
             AND TABLE_NAME = :table;';
         $qry = $this->connection->dbh->prepare($cmd);
-        $qry->bindValue(":dbname", $this->connection->dbname, \PDO::PARAM_STR);
-        $qry->bindValue(":table", $table, \PDO::PARAM_STR);
+        $qry->bindValue(":dbname", $this->connection->dbname);
+        $qry->bindValue(":table", $table);
         $qry->execute();
         return count($qry->fetchAll()) > 0;
     }
@@ -45,7 +47,6 @@ class Database
         if (!$this->TableExists($table)) {
             throw new Exception("La table $table n'existe pas.");
         }
-        $record = ["username"=>"RathGaate", "email"=>"marianne.corbel@ynov.com", "age"=>25];
 
         $cols = FormatLib::KeyPair(array_keys($record));
         $vals = FormatLib::KeyPair(range(0, count($record)-1), ":%s");
@@ -53,20 +54,75 @@ class Database
         $qry = $this->connection->dbh->prepare($cmd);
 
         $i = 0;
-        foreach ($record as $col=>$val) {
+        foreach ($record as $val) {
             $qry->bindValue(":$i", $val);
             $i++;
         }
+
+        echo $cmd;
+
+//        $qry->execute();
+//        echo $this->connection->dbh->lastInsertId();
+    }
+
+    function DeleteRecord($table, $record, $where)
+    {
+        // Checks for thje existence of the table
+        if (!$this->TableExists($table)) {
+            throw new Exception("La table $table n'existe pas.");
+        }
+        if ($where == NULL) {
+            throw new DatabaseFormatException("Invalid DELETE query format : `where` clause must be set");
+        }
+
+        // Gestion de la clause WHERE
+        $clause = Database::Where($where)["strReq"];
+
+        $cmd = "DELETE FROM $table WHERE $clause;";
+        $qry = $this->connection->dbh->prepare($cmd);
+        // Liaison des paramètres:
+        if (isset($clause["values"]) and count($clause["values"])>0) {
+            for ($i = 1; $i <= count($clause["values"]); $i++) {
+                $qry->bindValue($i, $clause["values"][$i-1]);
+            }
+        }
         $qry->execute();
-        echo $this->connection->dbh->lastInsertId();
+        echo $cmd;
     }
 
-    function DeleteRecord()
+    function UpdateRecord($table, $record, $where)
     {
-    }
+        if (!$this->TableExists($table)) {
+            throw new Exception("La table $table n'existe pas.");
+        }
 
-    function UpdateRecord()
-    {
+        $vals = FormatLib::ArrayToInsert($record);
+
+
+
+        $clause = Database::Where($where);
+        $cmd = "UPDATE `$table` SET $vals WHERE ".$clause["strReq"].";";
+        $qry = $this->connection->dbh->prepare($cmd);
+
+        // LMAO
+        $i = 1;
+        echo count($record);
+        foreach ($record as $val) {
+            $qry->bindValue($i, $val);
+            $i++;
+        }
+        // Liaison des paramètres:
+        if (isset($clause["values"]) and count($clause["values"])>0) {
+            foreach ($clause["values"] as $val) {
+                echo$val;
+
+                $qry->bindValue($i, $val);
+                $i++;
+            }
+        }
+
+        $qry->execute();
+
     }
 
 
@@ -107,7 +163,7 @@ class Database
 
         $qry->execute();
         echo $cmd;
-        echo(json_encode($qry->fetchAll(\PDO::FETCH_ASSOC)));
+        echo(json_encode($qry->fetchAll(PDO::FETCH_ASSOC)));
 //        echo $this->connection->dbh->lastInsertId();
     }
 
@@ -122,9 +178,9 @@ class Database
         ];
 
 
-        if (!in_array($operator, Database::$valid_operators)) {
+        if (!in_array($operator, Database::$comparison_op)) {
             throw new DatabaseFormatException("Invalid operator `$operator`: supported comparison operators are "
-                .FormatLib::ArrToStr(Database::$valid_operators, "[", "]", ", "));
+                .FormatLib::ArrToStr(Database::$comparison_op, "[", "]", ", "));
         }
         if (!is_string($val1)) {
             //TODO

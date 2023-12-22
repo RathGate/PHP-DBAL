@@ -59,21 +59,14 @@ abstract class Service {
             default:
                 $rawParamValues = $_GET;
         }
-        if ($this->method == "PATCH" || $this->method == "PUT") {
 
-        }
-//        else if ($this->method == "GET" || $this->method == "DELETE") {
-//            $rawParamValues = $_GET;
-//        } else {
-//            $rawParamValues = $_POST;
-//        }
         foreach ($this->requiredParams[$this->method] as $param) {
 
             if (!isset($rawParamValues[$param])) {
                 ApiLib::WriteErrorResponse(400, "Paramètre obligatoire `".$param."` manquant.");
             }
             try {
-                $this->paramValues->$param = json_decode($rawParamValues[$param], false, 512, JSON_THROW_ON_ERROR);
+                $this->paramValues->$param = json_decode($rawParamValues[$param], true, 512, JSON_THROW_ON_ERROR);
             } catch (\JsonException $e) {
                 ApiLib::WriteErrorResponse(400, "Erreur de syntaxe: impossible de parse le paramètre `".$param."` [format JSON attendu].");
                 return;
@@ -86,7 +79,7 @@ abstract class Service {
         foreach ($this->optionParams[$this->method] as $param) {
             if (isset($rawParamValues[$param])) {
                 try {
-                    $this->paramValues->$param = json_decode($rawParamValues[$param], false, 512, JSON_THROW_ON_ERROR);
+                    $this->paramValues->$param = json_decode($rawParamValues[$param], true, 512, JSON_THROW_ON_ERROR);
                 } catch (\JsonException $e) {
                     ApiLib::WriteErrorResponse(400, "Erreur de syntaxe: impossible de parse le paramètre `".$param."` [format JSON attendu].");
                     return;

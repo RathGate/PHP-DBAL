@@ -2,13 +2,15 @@
 
 namespace libs;
 
+use Exception;
+
 class FormatLib {
 
     static function KeyPair($arr=NULL, $format="%s", $sep=", "): string
     {
         if (!is_array($arr)) {
             // TODO
-            throw new \Exception("Not an array");
+            throw new Exception("Not an array");
         }
         $result = "";
         for ($i = 0; $i < count($arr); $i++) {
@@ -32,8 +34,21 @@ class FormatLib {
         return true;
     }
 
-    static function ArrToStr($arr, $start="[", $end="]", $sep=", ") {
+    static function ArrToStr($arr, $start="[", $end="]", $sep=", "): string
+    {
         return "[".implode($sep, $arr)."]";
     }
 
+    static function ArrayToInsert($arr) {
+        if (!is_array($arr)) {
+            return false;
+        }
+        $result = [];
+        $i = 1;
+        foreach ($arr as $key => $value) {
+            $result[] = "$key = ?";
+            $i++;
+        }
+        return implode(", ", $result);
+    }
 }

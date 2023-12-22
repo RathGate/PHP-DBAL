@@ -18,13 +18,12 @@ class DBRecordService extends DatabaseService {
             "DELETE"=>["table"]
         ];
         $this->optionParams = [
-            "GET"=>["columns", "where", "order_by", "limit", "offset"],
+            "GET"=>["columns", "where"],
             "POST"=>[],
             "PATCH"=>["where"],
             "DELETE"=>["where"]
         ];
-
-        parent::__construct($allowed_verbs);;
+        parent::__construct($allowed_verbs);
     }
 
     // Renvoie l'erreur en réponse et termine le script si un paramètre est invalide.
@@ -51,15 +50,19 @@ class DBRecordService extends DatabaseService {
         if (!$this->database->TableExists($this->paramValues->table)) {
             ApiLib::WriteErrorResponse(400, "La table ".$this->paramValues->table." n'existe pas dans la base.");
         }
-//        $this->database->AddRecord($this->paramValues->table, $this->paramValues->values);
-
+        $this->database->AddRecord($this->paramValues->table, $this->paramValues->values);
     }
     public function PATCH(){
-        echo "hello from PATCH!";
-        var_dump($this->requiredParams[$this->method] ?? "no parameter.");
+        if (!$this->database->TableExists($this->paramValues->table)) {
+            ApiLib::WriteErrorResponse(400, "La table ".$this->paramValues->table." n'existe pas dans la base.");
+        }
+        $this->database->UpdateRecord($this->paramValues->table, $this->paramValues->values, $this->paramValues->where);
     }
     public function DELETE(){
-        echo "hello from DELETE!";
-        var_dump($this->requiredParams[$this->method] ?? "no parameter.");
+        try {
+            $this->database->DeleteRecord($this->paramValues->table, $this->paramValues->where);
+        } catch (DatabaseFormatException $e) {
+            echo $e->getMessage();
+        }
     }
 }
