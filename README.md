@@ -39,9 +39,9 @@ ____
 
 #### Paramètres 
 
-> | name              |  type     | data type      | description                         |
-> |-------------------|-----------|----------------|-------------------------------------|
-> | `arr`             |    requis | tableau JSON   | Tableau à trier                     |
+ | nom              |  type     | data type          | description                         |
+ |---------------|----------|------------------|------------------------------|
+ | `arr`               |    requis | tableau JSON   | Tableau à trier                     |
 
 #### Responses                                                     
 Retourne les éléments sous le format JSON suivant :
@@ -51,8 +51,8 @@ Retourne les éléments sous le format JSON suivant :
 	    "sort_function": 
 	    "sorted_arr": []
     }
-}```
-
+}
+```
 Dans le cas d'une erreur :
 ```json
 {
@@ -60,11 +60,13 @@ Dans le cas d'une erreur :
 	    "code": // 404, par exemple
 	    "message":
 	}
-}```
+}
+```
 
 #### Exemple d'URL
 
 `GET` `/api/sort/insertionsort/?arr=[-1,7,8,5]`
+
 </details>
 
 ### Modification des données d'une BDD
