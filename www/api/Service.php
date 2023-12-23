@@ -4,6 +4,9 @@ namespace api;
 require_once __DIR__."/../autoload.php";
 use libs\ApiLib;
 
+/**
+ *
+ */
 abstract class Service {
     protected $allowedVerbs = [];
     protected $requiredParams = [];
@@ -11,42 +14,61 @@ abstract class Service {
     protected $paramValues;
     protected $method;
 
-    public function __construct($allowed_verbs=["GET"])
+    /** Class constructor
+     * @param ?array $allowed_verbs all allowed HTTP verbs
+     */
+    public function __construct(?array $allowed_verbs=["GET"])
     {
-        $this->allowedVerbs = array_change_key_case($allowed_verbs, CASE_UPPER);
+        // Puts allowed verbs and HTTP methods to uppercase to avoid errors :
+        $this->allowedVerbs = array_change_key_case($allowed_verbs ?? [], CASE_UPPER);
         $this->method = strtoupper($_SERVER["REQUEST_METHOD"]);
 
-        // Vérifie le verbe de la requête
+        // Checks if the method of the current request is valid :
         if (!self::IsValidMethod()) {
-            ApiLib::WriteErrorResponse(405, "Méthode ".$this->method." non autorisée.");
+            ApiLib::WriteErrorResponse(405, "Method ".$this->method." is not allowed.");
         }
 
-        // Récupère, traite et vérifie les paramètres
+        // Retrieves, sets and checks parameters :
         $this::SetParameters();
         // Todo: séparé de SetParameters mais peut certainement être factorisé en une fonction,
         // Todo: mais je ne pense pas savoir comment faire.
         $this->CheckParameters();
 
-        // Si aucune erreur n'a été détectée, lance l'exécution du service en lui-même.
+        // Launches the execution of the service itself.
         $this->Trig();
     }
 
+    /** Main body of execution of the service. Can be overwritten to fit needs.
+     * By default, will call the class method associated to the HTTP method used.
+     * @return void
+     */
     public function Trig() {
         $fct = $this->method;
         $this->$fct();
     }
 
-    // Retourne true si la REQUEST_METHOD est présente dans les allowedMethods
+    /** Checks the validity of the current HTTP method.
+     * @return bool true if the current HTTP method is among the valid_methods.
+     */
     public function IsValidMethod(): bool
     {
         return in_array($this->method, $this->allowedVerbs);
     }
 
     // Enregistre les paramètres dans l'object $this->params.
-    public function SetParameters(): void {
-        $this->paramValues = new \stdClass();
-        $this->requiredParams[$this->method] = $this->requiredParams[$this->method] ?? [];
 
+    /** Sets the requested and optionnal parameters of the request in paramValues.
+     * @return void
+     */
+    public function SetParameters(): void {
+        // Creates the object for the parameter values :
+        $this->paramValues = new \stdClass();
+        // If no required/optional parameters, assigns an empty array to the
+        // value so that the program doesn't explode at the foreach.
+        $this->requiredParams[$this->method] = $this->requiredParams[$this->method] ?? [];
+        $this->optionParams[$this->method] = $this->optionParams[$this->method] ?? [];
+
+        // Retrieves the parameter values depending on the HTTP method used :
         $rawParamValues = [];
         switch ($this->method) {
             case "PATCH":
@@ -60,8 +82,9 @@ abstract class Service {
                 $rawParamValues = $_GET;
         }
 
+        // Todo : refactor this. ASAP.
+        // Required parameters :
         foreach ($this->requiredParams[$this->method] as $param) {
-
             if (!isset($rawParamValues[$param])) {
                 ApiLib::WriteErrorResponse(400, "Paramètre obligatoire `".$param."` manquant.");
             }
@@ -72,10 +95,7 @@ abstract class Service {
                 return;
             }
         }
-
-        // ---------------------
-        $this->optionParams[$this->method] = $this->optionParams[$this->method] ?? [];
-
+        // Optional parameters :
         foreach ($this->optionParams[$this->method] as $param) {
             if (isset($rawParamValues[$param])) {
                 try {
@@ -90,13 +110,35 @@ abstract class Service {
         }
     }
 
-    // Fonction à déclarer dans les classes enfant pour vérifier les paramètres et valeurs
-    // spécifiques au service en question.
+    /** Function to be implemented in child classes if there's need for further parameter
+     * verification after they have been set.
+     * @return mixed
+     */
     public abstract function CheckParameters();
 
+    /** Main body of the service for GET HTTP method.
+     * @return mixed
+     */
     public abstract function GET();
+
+    /** Main body of the service for POST HTTP method.
+     * @return mixed
+     */
     public abstract function POST();
-    public abstract function PATCH();
+
+    /** Main body of the service for PUT HTTP method.
+     * @return mixed
+     */
+    public abstract function PUT();
+
+    /** Main body of the service for DELETE HTTP method.
+     * @return mixed
+     */
     public abstract function DELETE();
+
+    /** Main body of the service for PATCH HTTP method.
+     * @return mixed
+     */
+    public abstract function PATCH();
 }
 

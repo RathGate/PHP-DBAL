@@ -6,31 +6,27 @@ use api\Service;
 use libs\ApiLib;
 use libs\SortLib;
 
+/** Service for array sorting
+ *
+ */
 class SortService extends Service {
 
-    // Surcharge Service.__construct() pour ajouter le traitement spécifique de la requête.
-    public function __construct($allowed_verbs=["GET"])
-    {
-        $this->requiredParams = [
-            "GET"=>["arr"]
-        ];
-        parent::__construct($allowed_verbs);
-    }
 
-
-    // Surcharge Service::SetParameters() pour y ajouter le nom de la fonction de tri à utiliser,
-    // récupérée depuis l'URI de la requête.
+    /**
+     * @return void
+     */
     public function SetParameters(): void
     {
         parent::SetParameters();
-
-        // Récupère le nom de l'endpoint (.../{endpoint}/index.php)
+        // Retrieves the endpoint name (.../{endpoint}/index.php)
         preg_match("/^.*\/(?P<folder_name>.+)\/.+\.php$/", $_SERVER["PHP_SELF"], $matches);
-        // Vérifie si une fonction du nom récupéré {endpoint} existe dans SortLib, sinon attribue 'false'
+        // Looks for the existence of a function {endpoint} in SortLib, else 'false'
         $this->paramValues->sortFunc = $matches["folder_name"] ?? false;
     }
 
-    // Renvoie l'erreur en réponse et termine le script si un paramètre est invalide.
+    /** Additional parameter check for custom parameters set in SortService::SetParameters
+     * @return void
+     */
     public function CheckParameters()
     {
         // La méthode associée à l'endpoint n'existe pas
@@ -43,6 +39,9 @@ class SortService extends Service {
         }
     }
 
+    /**
+     * @return void
+     */
     public function GET(){
         // Trie l'array avec la fonction associée à l'endpoint
         $sortedArr = SortLib::{$this->paramValues->sortFunc}($this->paramValues->arr);
@@ -50,7 +49,24 @@ class SortService extends Service {
         ApiLib::WriteResponse(array("sort_function"=>$this->paramValues->sortFunc, "sorted_arr"=>$sortedArr));
     }
 
+    /**
+     * @return void
+     */
     public function POST(){}
-    public function PATCH(){}
+
+    /**
+     * @return void
+     */
+    public function PUT(){}
+
+    /**
+     * @return void
+     */
     public function DELETE(){}
+
+    /**
+     * @return void
+     */
+    public function PATCH(){}
+
 }

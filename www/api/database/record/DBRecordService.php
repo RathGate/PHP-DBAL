@@ -14,13 +14,13 @@ class DBRecordService extends DatabaseService {
         $this->requiredParams = [
             "GET"=>["table"],
             "POST"=>["table", "values"],
-            "PATCH"=>["columns", "table", "values"],
+            "PUT"=>["columns", "table", "values"],
             "DELETE"=>["table"]
         ];
         $this->optionParams = [
             "GET"=>["columns", "where"],
             "POST"=>[],
-            "PATCH"=>["where"],
+            "PUT"=>["where"],
             "DELETE"=>["where"]
         ];
         parent::__construct($allowed_verbs);
@@ -52,7 +52,7 @@ class DBRecordService extends DatabaseService {
         }
         $this->database->AddRecord($this->paramValues->table, $this->paramValues->values);
     }
-    public function PATCH(){
+    public function PUT(){
         if (!$this->database->TableExists($this->paramValues->table)) {
             ApiLib::WriteErrorResponse(400, "La table ".$this->paramValues->table." n'existe pas dans la base.");
         }
@@ -64,5 +64,13 @@ class DBRecordService extends DatabaseService {
         } catch (DatabaseFormatException $e) {
             echo $e->getMessage();
         }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function PATCH()
+    {
+        // TODO: Implement PATCH() method.
     }
 }
