@@ -11,7 +11,7 @@ A noter que l'intérêt du format `x-www-url-form-encoded` réside dans le fait 
 	- Les valeurs des paramètres doivent être notées **sous format JSON**.
 	
 **Exemple** :
-```json
+```
 ?table="user" ...
 ?columns=["username", "age", "email"] ...
 ?values={"username":"rathgate","email":"marianne.corbel@ynov.com"} ...
@@ -45,7 +45,7 @@ ____
 
 #### Responses                                                     
 Retourne les éléments sous le format JSON suivant :
-```json
+```
 {
     "data": {
 	    "sort_function": 
@@ -54,7 +54,7 @@ Retourne les éléments sous le format JSON suivant :
 }
 ```
 Dans le cas d'une erreur :
-```json
+```
 {
     "error": {
 	    "code": // 404, par exemple
