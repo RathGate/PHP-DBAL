@@ -1,63 +1,71 @@
-# PHP Api
 
-Cet exercice propose une implémentation orientée service d'une API permettant de trier un tableau de valeurs fourni en query parameter.
+## Notes sur le format 
 
-Trois versions de cette API ont été construites pour tenter de jauger les avantages et les inconvénients de chacune, trouvables sur la [page github](https://github.com/RathGate/corbel_b2_php_tp1) du projet.
+1. **Position des paramètres de la requête** :
+	- Les méthodes  `GET`/`DELETE` n'utiliseront que les paramètres et valeurs fournis dans l'URL de la requête (`query parameter`)
+	- Les méthodes `POST`/`PUT`/`PATCH` n'utiliseront que les paramètres et valeurs fournis dans le `body` de la requête, celui-ci au format `x-www-url-form-encoded`.
 
-La version `main` définitive, celle de ce rendu, cherche à implémenter les dernières pistes d'amélioration abordées en cours ainsi qu'une totale gestion des erreurs, un autoloader manuel fonctionnel et une architecture permettant à l'utilisateur de modifier l'API "facilement".
+A noter que l'intérêt du format `x-www-url-form-encoded` réside dans le fait que le format des paramètres restera le même (qu'ils soient fournis en `GET` ou en `POST`). N'ayant pas beaucoup d'expérience sur la question, j'ai privilégié la simplicité d'utilisation et l'unicité dans le cadre de tests répétés.
 
-La version `former_version` contient une trace de l'API telle qu'elle était au midi du 19/10 (même architecture, sans "l'optimisation" des classes services) et la version `single_endpoint` implémente l'API en utilisant `/api/sort/` en guise de seul endpoint.
-## Spécifications techniques
+2. **Format des paramètres de la requête** :
+	- Les valeurs des paramètres doivent être notées **sous format JSON**.
+	
+**Exemple** :
+```json
+?table="user" ...
+?columns=["username", "age", "email"] ...
+?values={"username":"rathgate","email":"marianne.corbel@ynov.com"} ...
+?where=[["age","BETWEEN",18,25],"OR",["username","LIKE","%Gate"]] ...
+```
 
-La totalité de l'API a été réalisée en **PHP 7.3**.
 
-**Utilisés pendant le développement :**
+## Endpoints
 
-- Client API: **Insomnia & Postman**
-- IDE: **JetBrains PHPStorm**
-- Serveur web: **XAMPP**
+### LEGACY : Tri de tableau
 
-## Installation
+Le tri de tableau proposé lors du TP 1 existe toujours ici ! 
 
-L'API est téléchargeable par le rendu moodle, ou en tapant dans un terminal:
+**Note** : Evidemment, ce n'est pas un élément... essentiel d'une API cherchant à altérer une base de données. Mais l'*endpoint* pouvant se supprimer en deux clics, je l'ai laissé en guise de témoin des changements de la structure de l'API entre les deux TP.
 
-    git clone https://github.com/RathGate/corbel_b2_php_tp1.git
+____
 
-Il revient à l'utilisateur de placer le contenu du dossier du projet dans le dossier du serveur web utilisé (par exemple le dossier `www` pour WAMP ou `htdocs` pour XAMPP).
+<details>
+  <summary><code>GET</code> <code><b>/api/sort/{algorithme}</b></code> <code>(trie un tableau avec l'algorithme choisi)</code></summary>
 
-A partir de là, l'API devrait être accessible par le biais du `localhost` aux ports configurés par le serveur web.
+#### Algorithmes nativement implémentés :
+- bubblesort
+- insertionsort
+- quicksort
 
-## Utilisation
+#### Paramètres 
 
-Les trois endpoints implémentés nativement trient et retournent une liste d'éléments fournie en paramètre.
+> | name              |  type     | data type      | description                         |
+> |-------------------|-----------|----------------|-------------------------------------|
+> | `arr`             |    requis | tableau JSON   | Tableau à trier                     |
 
-#### HTTP Request
-    GET http://localhost[...]/api/sort/bubblesort/
-    GET http://localhost[...]/api/sort/insertionsort/
-    GET http://localhost[...]/api/sort/quicksort/
-
-#### Query Parameters
-| Paramètre  | Requis | Type  | Description                                |
-|------------|--------|-------|--------------------------------------------|
-| arr        | oui    | Array | Contient le tableau à trier au format JSON |
-
-*Exemple:* `http://localhost/corbel_b2_php_tp1/api/sort/insertionsort/?arr=[-1,7,8,5]`
-
-#### Response
+#### Responses                                                     
 Retourne les éléments sous le format JSON suivant :
+```json
+{
+    "data": {
+	    "sort_function": 
+	    "sorted_arr": []
+    }
+}```
 
-    {
-	    "data": {
-		    "sort_function": 
-		    "sorted_arr": []
-	    }
+Dans le cas d'une erreur :
+```json
+{
+    "error": {
+	    "code": // 404, par exemple
+	    "message":
 	}
+}```
 
-Dans le cas d'une erreur, la réponse est au format suivant:
+#### Exemple d'URL
 
-    {
-	    "error": {
-		    "code": // 404, par exemple
-		    "message":
-		}
-	}
+`GET` `/api/sort/insertionsort/?arr=[-1,7,8,5]`
+</details>
+
+### Modification des données d'une BDD
+
