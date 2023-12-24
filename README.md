@@ -28,7 +28,7 @@ _____
 
 Plusieurs choses à noter :
 1. Un seul paramètre WHERE est fourni dans l'URL de la requête, contenant un array au minimum constitué d'une aggrégation ou d'une comparaison - `["id", "=", "12]` ou `[[...], "AND", [...]]`
-2. Ce format permet de gérer des conditions imbriquées "facilement" en économisant un maximum de caractères.
+2. Ce format permet de gérer des conditions imbriquées "facilement" et de manière lisible en économisant un maximum de caractères.
 3. Puisque le format paraît assez libre, le code gérant la traduction tableau > SQL réalise beaucoup de vérifications sur les types et valeurs présents dans le/les tableaux.
 
 _____
