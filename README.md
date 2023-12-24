@@ -17,8 +17,11 @@
 ### Concernant WHERE
 
 Dans un premier temps, un exemple :
+
 ```where=[["id","=","10"],"OR",[["username","LIKE","%Gate"],"AND",["age","BETWEEN",15,25]]]```
+
 La requête ci-dessus se traduit en :
+
 ```WHERE id = 10 OR (username LIKE "%Gate" AND age BETWEEN 15 AND 25)```
 
 Plusieurs choses à noter :
