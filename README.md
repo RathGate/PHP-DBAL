@@ -1,4 +1,37 @@
 
+# A propos
+
+Cet exercice propose une implémentation orientée service d'une API proposant d'altérer de manière basique les enregistrements d'une table donnée d'une base de données. Il s'agit d'une version améliorée de l'[API du TP1](https://github.com/RathGate/corbel_b2_php_tp1) .
+
+Dans cette optique, les routes <u>associées au microservice de tri de tableau existent toujours</u> avec les mêmes paramètres, laissées dans le cadre de l'exercice à des fins de témoignage des changements survenus entre le TP1 et le TP2.
+
+Cette API est généraliste et se veut dynamique : les routes concernant les tables fonctionnent quelle que soit la base de donnée renseignée.
+
+## Spécifications techniques 
+
+La totalité de l'API a été réalisée en **PHP 7.3**.
+
+**Utilisés pendant le développement :**
+
+- Client API: **Insomnia & Postman**
+- IDE: **JetBrains PHPStorm**
+- Serveur web: **XAMPP**
+
+# Installation 
+
+Pour récupérer le projet depuis GitHub :
+```
+git clone https://github.com/RathGate/corbel_b2_php_tp2.git
+```
+
+Ce projet est divisé en deux dossiers : `/www` et `/credentials` :
+- le contenu du dossier `/www` doit se trouver dans le dossier du serveur web,
+- le dossier `/credentials` doit se trouver un niveau au-dessus du dossier du serveur web à des fins de sécurité.
+
+**Note**: Par défaut, le programme va chercher les propriétés de la base de données à utiliser dans le fichier `/credentials/database.json`. Il revient à l'utilisateur de modifier ce fichier avant de tester le bon fonctionnement de l'API.
+
+# Utilisation
+
 ## Notes sur le format 
 
 1. **Position des paramètres de la requête** :
@@ -53,15 +86,11 @@ _____
 
 ### LEGACY : Tri de tableau
 
-Le tri de tableau proposé lors du TP 1 existe toujours ici ! 
-
-**Note** : Evidemment, ce n'est pas un élément... essentiel d'une API cherchant à altérer une base de données. Mais l'*endpoint* pouvant se supprimer en deux clics, je l'ai laissé en guise de témoin des changements de la structure de l'API entre les deux TP.
-
-Rappel des endpoints TODO
+Le fonctionnement étant toujours le même, vous pouvez retrouver les routes utilisables et leurs paramètres [ici](https://github.com/RathGate/corbel_b2_php_tp1) (l'ancienne documentation pour ne pas prendre trop de place dans celle-ci).
 
 ### Modification des données d'une BDD
 
-**Sélectionner des données dans la base (SELECT)**:
+**Sélectionner des enregistrements dans une table (SELECT)**:
 <details>
   <summary><code>GET</code> <code><b>/api/database/record/</b></code></summary>
 
@@ -124,9 +153,10 @@ Dans le cas d'une erreur :
 </details>
 
 _______
-**Ajouter des données dans la base (INSERT)****:
+
+**Ajouter un nouvel enregistrement dans une table (INSERT)**:
 <details>
-  <summary><code>GET</code> <code><b>/api/database/record/</b></code> <code>(ajoute **une** nouvelle entrée à la base de données)</code></summary>
+  <summary><code>POST</code> <code><b>/api/database/record/</b></code> </summary>
 
 #### Paramètres 
 
@@ -168,3 +198,90 @@ values:{"username":"bonjour", "email":"bonjour@test.com"}
 
 </details>
 
+______
+
+**Modifier des données dans une table (UPDATE)**:
+<details>
+  <summary><code>PUT</code> <code><b>/api/database/record/</b></code></summary>
+
+#### Paramètres 
+
+ | nom              |  type     | data type          | description                         |
+ |---------------|----------|------------------|------------------------------|
+ | `table`               |    requis | string   | nom de la table                   |
+ | `values`    | requis | JSON array associatif | valeurs à ajouter |
+ | `where` | requis | JSON array | filtres de la requête |
+
+#### Responses                                                     
+Retourne les éléments sous le format JSON suivant :
+
+```
+{
+    "data": {
+        "last_inserted_id": "20"
+    }
+}
+```
+
+Dans le cas d'une erreur :
+```
+{
+    "error": {
+        "code": 400,
+        "message": "Syntax Error: could not parse parameter `where` [expecting JSON format]."
+    }
+}
+```
+
+#### Exemple d'URL
+
+`PUT` `?api/database/record/`
+
+`Body` en `x-www-url-encoded`:
+```
+table:"user"
+values:{"username":"bonjour", "email":"bonjour@test.com"}
+where:["id","=","1"]
+```
+
+</details>
+
+____
+
+**Supprimer des enregistrements d'une table (DELETE)**:
+<details>
+  <summary><code>DELETE</code> <code><b>/api/database/record/</b></code></summary>
+
+#### Paramètres 
+
+ | nom              |  type     | data type          | description                         |
+ |---------------|----------|------------------|------------------------------|
+ | `table`               |    requis | string   | nom de la table                   |
+ | `where`    | requis | JSON array | filtres de la requête |
+
+#### Responses                                                     
+Retourne les éléments sous le format JSON suivant :
+
+```
+{
+    "data": {
+        "rows_affected": "2"
+    }
+}
+```
+
+Dans le cas d'une erreur :
+```
+{
+    "error": {
+        "code": [HTTP error code],
+        "message": [error msg]
+    }
+}
+```
+
+#### Exemple d'URL
+
+`DELETE` `?api/database/record/table="user"&where=["age","IS NULL"]`
+
+</details>
