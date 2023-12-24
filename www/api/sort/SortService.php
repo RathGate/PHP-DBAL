@@ -11,6 +11,13 @@ use libs\SortLib;
  */
 class SortService extends Service {
 
+    public function __construct($allowed_verbs=["GET"])
+    {
+        $this->requiredParams = [
+            "GET"=>["arr"]
+        ];
+        parent::__construct($allowed_verbs);
+    }
 
     /**
      * @return void

@@ -32,7 +32,7 @@ class FormatLib {
      * @param bool $is_array if true, checks the validity of each and every element inside $tested as array.
      * @return bool
      */
-    static function isValidTypeOnly($tested, array $valid_types=["integer", "string", "double"], bool $is_array=false): bool
+    static function isValidTypeOnly($tested, bool $is_array=false,array $valid_types=["integer", "string", "double"]): bool
     {
         // If $tested not explicitely asserted as array, checks its own type.
         if (!$is_array) {

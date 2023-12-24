@@ -91,7 +91,7 @@ abstract class Service {
             try {
                 $this->paramValues->$param = json_decode($rawParamValues[$param], true, 512, JSON_THROW_ON_ERROR);
             } catch (\JsonException $e) {
-                ApiLib::WriteErrorResponse(400, "Erreur de syntaxe: impossible de parse le paramètre `".$param."` [format JSON attendu].");
+                ApiLib::WriteErrorResponse(400, "Syntax Error: could not parse parameter `".$param."` [expecting JSON format].");
                 return;
             }
         }
@@ -101,7 +101,7 @@ abstract class Service {
                 try {
                     $this->paramValues->$param = json_decode($rawParamValues[$param], true, 512, JSON_THROW_ON_ERROR);
                 } catch (\JsonException $e) {
-                    ApiLib::WriteErrorResponse(400, "Erreur de syntaxe: impossible de parse le paramètre `".$param."` [format JSON attendu].");
+                    ApiLib::WriteErrorResponse(400, "Syntax Error: could not parse parameter `".$param."` [expecting JSON format].");
                     return;
                 }
             } else {

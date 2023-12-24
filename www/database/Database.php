@@ -17,7 +17,7 @@ class Database
     /**
      * @var Connection
      */
-    private $connection;
+    public $connection;
     public static $comparison_op = [
         "=", "<>", "!=", "<", ">", "<=", ">=", "LIKE", "IN", "BETWEEN", "IS NULL", "IS NOT NULL",
     ];
@@ -70,7 +70,8 @@ class Database
     function SelectRecord($columns, ?string $table=NULL, $where=NULL) : array
     {
         if (!$this->TableExists($table)) {
-            throw new DatabaseFormatException("Table `$table` doesn't exist in database `$this->connection->dbname`.");
+            $db = $this->connection->dbname;
+            throw new InvalidArgumentException("Table `$table` doesn't exist in database `$db`.");
         }
 
         // Column name formatting :
@@ -103,7 +104,6 @@ class Database
         }
         $qry->execute();
         // TODO : remove
-        echo json_encode($qry->fetchAll(PDO::FETCH_ASSOC));
         return $qry->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -117,7 +117,8 @@ class Database
     function AddRecord(string $table, array $record=NULL)
     {
         if (!$this->TableExists($table)) {
-            throw new InvalidArgumentException("Table `$table` doesn't exist in database `$this->connection->dbname`.");
+            $db = $this->connection->dbname;
+            throw new InvalidArgumentException("Table `$table` doesn't exist in database `$db`.");
         }
 
         // Column name formatting :
@@ -152,7 +153,8 @@ class Database
     {
         // Checks for the existence of the table
         if (!$this->TableExists($table)) {
-            throw new InvalidArgumentException("Table `$table` doesn't exist in database `$this->connection->dbname`.");
+            $db = $this->connection->dbname;
+            throw new InvalidArgumentException("Table `$table` doesn't exist in database `$db`.");
         }
         // Checks for the existence of the where clause :
         if ($where == NULL) {
@@ -160,10 +162,9 @@ class Database
         }
 
         // WhereClause clause formatting :
-        $clause = Database::WhereClause($where)["strReq"];
-
+        $clause = Database::WhereClause($where);
         // SQL query :
-        $cmd = "DELETE FROM $table WHERE $clause;";
+        $cmd = "DELETE FROM $table WHERE ".$clause["strReq"].";";
         $qry = $this->connection->dbh->prepare($cmd);
 
         // WhereClause parameter binding and execution :
@@ -188,7 +189,8 @@ class Database
     function UpdateRecord(string $table, ?array $record, $where): int
     {
         if (!$this->TableExists($table)) {
-            throw new InvalidArgumentException("Table `$table` doesn't exist in database `$this->connection->dbname`.");
+            $db = $this->connection->dbname;
+            throw new InvalidArgumentException("Table `$table` doesn't exist in database `$db`.");
         }
 
         // Columns and values formatting :
@@ -210,11 +212,12 @@ class Database
         // WhereClause parameter binding and execution :
         if (isset($clause["values"]) and count($clause["values"])>0) {
             foreach ($clause["values"] as $val) {
-                echo$val;
+                echo $val;
                 $qry->bindValue($i, $val);
                 $i++;
             }
         }
+        $qry->execute();
         return $qry->rowCount();
     }
 
@@ -289,7 +292,6 @@ class Database
                     throw new DatabaseFormatException("Invalid parameter format in `$operator` comparison: parameter 3 must
                     have a value of the following types: `string` or `integer/double` (here `".gettype($val2)."`).");
                 }
-
                 // String construction and values
                 $result["strReq"] = "$val1 $operator ?";
                 $result["values"] = [$val2];
@@ -299,16 +301,16 @@ class Database
 
 
     /** Global String builder for where clause
-     // Todo : Is also an absolute unit of a function.
-     // Todo : Maybe possible to convert to a query builder ?
-     // Todo : Implement "NOT" operator.
-     // Todo : Separate the conditionArr like in WhereComparison?
+     * // Todo : Is also an absolute unit of a function.
+     * // Todo : Maybe possible to convert to a query builder ?
+     * // Todo : Implement "NOT" operator.
+     * // Todo : Separate the conditionArr like in WhereComparison?
      * @param $conditionArr .array to be formatted
      * @param bool $is_nested if true, string will be placed in parenthesis.
      * @return array returns an array with the formatted string and the associated values
      * @throws DatabaseFormatException
      */
-    static function WhereClause($conditionArr, $is_nested=false): array
+    static function WhereClause($conditionArr, bool $is_nested=false): array
     {
         // Structure which will carry the string result and its associated values
         // strReq : "age" BETWEEN ? AND ?
